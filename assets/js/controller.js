@@ -78,41 +78,44 @@ class CarController {
         }
     }
 
-    async showCart() {
-    const data = await this.fetchFromServer('getCart');
-    const cartItemsContainer = document.getElementById('cartItems');
-    const cartTotal = document.getElementById('cartTotal');
+    showCart() {
+        const cart = this.model.getCart();
+        const cartItemsContainer = document.getElementById('cartItems');
+        const cartTotal = document.getElementById('cartTotal');
 
-    if (!cartItemsContainer || !cartTotal) return;
+        const checkoutBtn = document.getElementById('checkoutBtn');
 
-    cartItemsContainer.innerHTML = data.cart.map((item, index) => `
-        <div class="row mb-3 align-items-center">
-            <div class="col-md-4">
-                <img src="${item.image}" class="img-fluid rounded" alt="${item.name}">
-            </div>
-            <div class="col-md-6">
-                <h5>${item.name}</h5>
-                <p>${item.type} - $${item.price.toFixed(2)} USD</p>
-            </div>
-            <div class="col-md-2 text-end">
-                <button class="btn btn-danger btn-sm remove-item" data-index="${index}">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        </div>
-    `).join('');
+        //Si el carrito esta vacio se deshabilita el boton
+        if (checkoutBtn) {
+            checkoutBtn.disabled = cart.length === 0;
+        }
 
-    cartTotal.textContent = `$${data.total.toFixed(2)} USD`;
+        if (cart.length === 0) {
+            cartItemsContainer.innerHTML = '<p class="text-center">No hay autos en el carrito</p>';
+            cartTotal.textContent = '$0.00 USD';
+        } else {
+            cartItemsContainer.innerHTML = cart.map(item => `
+                <div class="row mb-3 align-items-center">
+                    <div class="col-md-4">
+                        <img src="${item.image}" class="img-fluid rounded" alt="${item.name}">
+                    </div>
+                    <div class="col-md-6">
+                        <h5>${item.name}</h5>
+                        <p>${item.type} - $${item.price.toFixed(2)} USD</p>
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <button class="btn btn-danger btn-sm remove-item" data-id="${item.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
 
-    document.querySelectorAll('.remove-item').forEach(button => {
-        button.addEventListener('click', () => {
-            const index = button.getAttribute('data-index');
-            this.removeFromCart(index);
-        });
-    });
+            cartTotal.textContent = `$${this.model.getTotal().toFixed(2)} USD`;
+        }
 
-    this.cartModal.show();
-}
+        this.cartModal.show();
+    }
 
     updateCartCount() {
         const cartCount = document.getElementById('cartCount');
