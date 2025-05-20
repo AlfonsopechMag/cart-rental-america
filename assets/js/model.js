@@ -16,7 +16,7 @@ class CarModel {
                 luggage: "2 maletas",
                 doors: "4 puertas",
                 price: 32.00,
-                image: "../assets/img/CHEVROLET-Onix.jpg"
+                image: "assets/img/CHEVROLET-Onix.jpg"
             },
             {
                 id: 2,
@@ -27,7 +27,7 @@ class CarModel {
                 luggage: "2 maletas",
                 doors: "4 puertas",
                 price: 38.00,
-                image: "../assets/img/aveo.jpg"
+                image: "assets/img/aveo.jpg"
             },
             {
                 id: 3,
@@ -38,7 +38,7 @@ class CarModel {
                 luggage: "3 maletas",
                 doors: "4 puertas",
                 price: 45.00,
-                image: "../assets/img/vento.jpg"
+                image: "assets/img/vento.jpg"
             },
             {
                 id: 4,
@@ -49,7 +49,7 @@ class CarModel {
                 luggage: "4 maletas",
                 doors: "4 puertas",
                 price: 50.00,
-                image: "../assets/img/nissan_kicks.jpg"
+                image: "assets/img/nissan_kicks.jpg"
             },
             {
                 id: 5,
@@ -60,7 +60,7 @@ class CarModel {
                 luggage: "Caja grande",
                 doors: "4 puertas",
                 price: 65.00,
-                image: "../assets/img/hilux.jpg"
+                image: "assets/img/hilux.jpg"
             },
             {
                 id: 6,
@@ -71,7 +71,7 @@ class CarModel {
                 luggage: "3 maletas",
                 doors: "4 puertas",
                 price: 85.00,
-                image: "../assets/img/bmw.jpg"
+                image: "assets/img/bmw.jpg"
             }
         ];
     }
