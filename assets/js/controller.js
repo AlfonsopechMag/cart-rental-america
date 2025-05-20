@@ -31,8 +31,7 @@ class CarController {
             e.stopPropagation();
             this.showCart();
         });
-        
-        // 5. Configurar clic en el icono dentro del botón
+                
         const cartIcon = this.cartButton.querySelector('i.fa-shopping-cart');
         if (cartIcon) {
             cartIcon.addEventListener('click', (e) => {
@@ -79,44 +78,41 @@ class CarController {
         }
     }
 
-    showCart() {
-        const cart = this.model.getCart();
-        const cartItemsContainer = document.getElementById('cartItems');
-        const cartTotal = document.getElementById('cartTotal');
+    async showCart() {
+    const data = await this.fetchFromServer('getCart');
+    const cartItemsContainer = document.getElementById('cartItems');
+    const cartTotal = document.getElementById('cartTotal');
 
-        const checkoutBtn = document.getElementById('checkoutBtn');
+    if (!cartItemsContainer || !cartTotal) return;
 
-        //Si el carrito esta vacio se deshabilita el boton
-        if (checkoutBtn) {
-            checkoutBtn.disabled = cart.length === 0;
-        }
+    cartItemsContainer.innerHTML = data.cart.map((item, index) => `
+        <div class="row mb-3 align-items-center">
+            <div class="col-md-4">
+                <img src="${item.image}" class="img-fluid rounded" alt="${item.name}">
+            </div>
+            <div class="col-md-6">
+                <h5>${item.name}</h5>
+                <p>${item.type} - $${item.price.toFixed(2)} USD</p>
+            </div>
+            <div class="col-md-2 text-end">
+                <button class="btn btn-danger btn-sm remove-item" data-index="${index}">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
 
-        if (cart.length === 0) {
-            cartItemsContainer.innerHTML = '<p class="text-center">No hay autos en el carrito</p>';
-            cartTotal.textContent = '$0.00 USD';
-        } else {
-            cartItemsContainer.innerHTML = cart.map(item => `
-                <div class="row mb-3 align-items-center">
-                    <div class="col-md-4">
-                        <img src="${item.image}" class="img-fluid rounded" alt="${item.name}">
-                    </div>
-                    <div class="col-md-6">
-                        <h5>${item.name}</h5>
-                        <p>${item.type} - $${item.price.toFixed(2)} USD</p>
-                    </div>
-                    <div class="col-md-2 text-end">
-                        <button class="btn btn-danger btn-sm remove-item" data-id="${item.id}">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
+    cartTotal.textContent = `$${data.total.toFixed(2)} USD`;
 
-            cartTotal.textContent = `$${this.model.getTotal().toFixed(2)} USD`;
-        }
+    document.querySelectorAll('.remove-item').forEach(button => {
+        button.addEventListener('click', () => {
+            const index = button.getAttribute('data-index');
+            this.removeFromCart(index);
+        });
+    });
 
-        this.cartModal.show();
-    }
+    this.cartModal.show();
+}
 
     updateCartCount() {
         const cartCount = document.getElementById('cartCount');
@@ -227,74 +223,74 @@ class CarController {
 
     renderCars() {
         const cars = this.model.getAvailableCars();
-    const carouselInner = document.querySelector('.carousel-inner');
-    carouselInner.innerHTML = '';
+        const carouselInner = document.querySelector('.carousel-inner');
+        carouselInner.innerHTML = '';
 
-    // Determinar número de cards por slide según el ancho de pantalla
-    const cardsPerSlide = window.innerWidth < 768 ? 1 : 
-                         window.innerWidth < 992 ? 2 : 3;
+        // Determinar número de cards por slide según el ancho de pantalla
+        const cardsPerSlide = window.innerWidth < 768 ? 1 : 
+                            window.innerWidth < 992 ? 2 : 3;
 
-    // Divido los autos en grupos
-    for (let i = 0; i < cars.length; i += cardsPerSlide) {
-        const slideCars = cars.slice(i, i + cardsPerSlide);
-        const slideItem = document.createElement('div');
-        slideItem.className = `carousel-item ${i === 0 ? 'active' : ''}`;
-        
-        const row = document.createElement('div');
-        row.className = 'row justify-content-center';
-        
-        slideCars.forEach(car => {
-            const col = document.createElement('div');
-            col.className = 'col-md-4 mb-4';
-            col.innerHTML = this.createCarCard(car);
-            row.appendChild(col);
-        });
-        
-        slideItem.appendChild(row);
-        carouselInner.appendChild(slideItem);
-    }
-   
-    if (this.carousel) {
-        this.carousel.dispose();
-    }
-    this.carousel = new bootstrap.Carousel(document.getElementById('carsCarousel'));
-    }
+        // Divido los autos en grupos
+        for (let i = 0; i < cars.length; i += cardsPerSlide) {
+            const slideCars = cars.slice(i, i + cardsPerSlide);
+            const slideItem = document.createElement('div');
+            slideItem.className = `carousel-item ${i === 0 ? 'active' : ''}`;
+            
+            const row = document.createElement('div');
+            row.className = 'row justify-content-center';
+            
+            slideCars.forEach(car => {
+                const col = document.createElement('div');
+                col.className = 'col-md-4 mb-4';
+                col.innerHTML = this.createCarCard(car);
+                row.appendChild(col);
+            });
+            
+            slideItem.appendChild(row);
+            carouselInner.appendChild(slideItem);
+        }
     
-    createCarCard(car) {
-        return `
-            <div class="col-lg-12 col-md-12 mb-4">
-                <div class="car-card">
-                    <img src="${car.image}" class="car-img card-img-top" alt="${car.name}">
-                    <div class="card-body p-4">
-                        <h5 class="car-title card-title">${car.name}</h5>
-                        <div class="container pt-4">
-                            <div class="row align-items-start">
-                                <div class="col">
-                                    <span class="fs-5">${car.type}</span><br>
-                                    ${car.features.map(f => `
-                                        <i class="fas ${f === 'A/C' ? 'fa-snowflake' : 'fa-cogs'} feature-icon"></i>
-                                        <span class="fs-5">${f}</span><br>
-                                    `).join('')}
+        if (this.carousel) {
+            this.carousel.dispose();
+        }
+        this.carousel = new bootstrap.Carousel(document.getElementById('carsCarousel'));
+        }
+        
+        createCarCard(car) {
+            return `
+                <div class="col-lg-12 col-md-12 mb-4">
+                    <div class="car-card">
+                        <img src="${car.image}" class="car-img card-img-top" alt="${car.name}">
+                        <div class="card-body p-4">
+                            <h5 class="car-title card-title">${car.name}</h5>
+                            <div class="container pt-4">
+                                <div class="row align-items-start">
+                                    <div class="col">
+                                        <span class="fs-5">${car.type}</span><br>
+                                        ${car.features.map(f => `
+                                            <i class="fas ${f === 'A/C' ? 'fa-snowflake' : 'fa-cogs'} feature-icon"></i>
+                                            <span class="fs-5">${f}</span><br>
+                                        `).join('')}
+                                    </div>
+                                    <div class="col">
+                                        <span class="fs-5">${car.capacity}</span><br/>
+                                        <span class="fs-5"><i class="fas fa-suitcase feature-icon"></i> ${car.luggage}</span><br/>
+                                        <span><i class="fas fa-door-open feature-icon"></i> <span class="fs-5">${car.doors}</span></span>
+                                    </div>                            
                                 </div>
-                                <div class="col">
-                                    <span class="fs-5">${car.capacity}</span><br/>
-                                    <span class="fs-5"><i class="fas fa-suitcase feature-icon"></i> ${car.luggage}</span><br/>
-                                    <span><i class="fas fa-door-open feature-icon"></i> <span class="fs-5">${car.doors}</span></span>
-                                </div>                            
+                            </div>                    
+                            <div class="d-flex justify-content-center pt-4 mb-3">                            
+                                <p class="price-tag">$${car.price.toFixed(2)} USD</p>                            
                             </div>
-                        </div>                    
-                        <div class="d-flex justify-content-center pt-4 mb-3">                            
-                            <p class="price-tag">$${car.price.toFixed(2)} USD</p>                            
-                        </div>
-                        <div class="d-flex justify-content-center mb-3">                            
-                            <button class="btn reserve-btn btn-reserve" data-id="${car.id}">
-                                RESERVAR AUTO
-                            </button>
+                            <div class="d-flex justify-content-center mb-3">                            
+                                <button class="btn reserve-btn btn-reserve" data-id="${car.id}">
+                                    RESERVAR AUTO
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        `;
+            `;
     }
    
     showToast(message, type) {
