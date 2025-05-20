@@ -1,4 +1,3 @@
-// assets/js/model.js
 class CarModel {
     constructor() {
         this.cart = [];
